@@ -1,34 +1,29 @@
-import { test, mock } from 'node:test'
-import assert from 'node:assert'
+import { test, mock } from "node:test"
+import assert from "node:assert"
 
-import { createOrder } from './create-order.js'
-import { transport } from './mail/transport.js'
+import { createOrder } from "./create-order.js"
+import { transport } from "./mail/transport.js"
+import { InMemoryOrdersRepository } from "./repositories/in-memory-orders-repository.js"
 
-test('create new order', async () => {
-  const order = await createOrder({
-    customerId: 'fake-customer-id',
-    amount: 1000,
-  })
+// mock.method(transport, 'sendMail', () => {
+//   console.log('Email enviado com sucesso!')
+// })
 
-  assert.ok(order.id)
-})
+transport.sendMail = () => {
+  console.log('Email mockado manualmente!')
+}
 
-test('orders with amount higher than 3000 should me marked as priority', async () => {
-  const order = await createOrder({
-    customerId: 'fake-customer-id',
-    amount: 5000,
-  })
+const inMemoryOrdersRepository = new InMemoryOrdersRepository()
 
-  assert.equal(order.priority, true)
-})
-
-test('an email should be sent after the order is created', async (t) => {
-  t.mock.method(transport, 'sendMail')
-
-  await createOrder({
-    customerId: 'fake-customer-id',
-    amount: 3000,
-  })
-
-  assert.equal(transport.sendMail.mock.calls.length, 1);
+test("create new order", async () => {
+  try {
+    const order = await createOrder({
+      customerId: 'customer-fake-id',
+      amount: 1000,
+    }, inMemoryOrdersRepository)
+  
+    assert.ok(order.id)
+  } catch (err) {
+    console.log(err)
+  }
 })

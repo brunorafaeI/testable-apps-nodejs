@@ -1,26 +1,14 @@
-import { randomUUID } from 'node:crypto'
-
-import { client } from './database/client.js'
 import { transport } from './mail/transport.js'
 
-export async function createOrder(data) {
+export async function createOrder(data, ordersRepository) {
   const { customerId, amount } = data
-
-  const orderId = randomUUID()
   const isPriority = amount > 3000
-
-  const command = await client.query(/* SQL */`
-    INSERT INTO "orders" (id, customer_id, priority, amount)
-    VALUES ($1, $2, $3, $4)
-    RETURNING *
-  `, [
-    orderId,
+ 
+  const order = await ordersRepository.create({
     customerId,
     isPriority,
-    amount,
-  ])
-
-  const order = command.rows[0]
+    amount
+  })
 
   const amountFormatted = new Intl.NumberFormat("en-US", { 
     style: "currency", 
@@ -29,15 +17,15 @@ export async function createOrder(data) {
 
   await transport.sendMail({
     from: {
-      name: 'Diego Fernandes',
-      address: 'diego@rocketseat.com.br',
+      name: 'Node testable',
+      address: 'no-reply@node-testable.com',
     },
     to: {
-      name: 'Diego Fernandes',
-      address: 'diego@rocketseat.com.br',
+      name: 'Bruno Rafael',
+      address: 'brunorafaelap@gmail.com',
     },
     subject: `New order #${order.id}`,
-    html: `<strong>New order:</strong> ${order.id} with amount of ${amountFormatted}`
+    html: `<h2>New order created:</h2><br /><strong>orderId:</strong> ${order.id}<br /> <strong>amount:</strong> ${amountFormatted}<br />`
   })
 
   return order

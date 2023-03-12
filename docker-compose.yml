@@ -1,0 +1,35 @@
+version: '3.5'
+services:
+
+  postgres:
+    image: postgres
+    container_name: node_pgsql
+    restart: always
+    volumes:
+      - pgsql_data:/var/lib/postgresql/data:rw
+    environment:
+      - POSTGRES_PASSWORD=node
+      - POSTGRES_USER=node
+      - POSTGRES_DB=node
+    ports:
+      - 5432:5432
+    networks:
+      - network
+
+  dbeaver:
+    image: dbeaver/cloudbeaver
+    container_name: node_dbeaver
+    restart: always
+    volumes:
+      - dbeaver_data:/opt/cloudbeaver/workspace
+    ports:
+      - 8000:8978
+    networks:
+      - network
+
+volumes:
+  pgsql_data:
+  dbeaver_data:
+
+networks:
+  network:
